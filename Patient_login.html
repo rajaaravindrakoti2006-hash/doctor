@@ -113,6 +113,26 @@
 <!-- Firebase Scripts -->
 <script type="module" src="firebase_config.js"></script>
 <script type="module" src="patient_login.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const passwordInput = document.getElementById('password');
+        const togglePasswordButton = passwordInput.nextElementSibling;
+        const toggleIcon = togglePasswordButton.querySelector('span');
+
+        togglePasswordButton.addEventListener('click', function () {
+            // Toggle the type attribute
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+
+            // Toggle the icon
+            if (type === 'password') {
+                toggleIcon.textContent = 'visibility_off';
+            } else {
+                toggleIcon.textContent = 'visibility';
+            }
+        });
+    });
+</script>
 
 </div>
 </body></html>
