@@ -91,6 +91,19 @@
             <h1 class="text-3xl md:text-4xl font-black leading-tight tracking-tight">My Medical Records</h1>
             <p class="text-base text-text-light-secondary dark:text-dark-secondary mt-1">View and manage your uploaded documents.</p>
         </div>
+
+        <!-- Sharing PIN Section -->
+        <div id="sharing-pin-card" class="mb-6 bg-primary/10 dark:bg-primary/20 p-6 rounded-xl border border-primary/20 flex flex-col items-center text-center" style="display: none;">
+            <h3 class="text-xl font-bold text-primary mb-2">Secure Sharing PIN</h3>
+            <p class="text-text-light-secondary dark:text-dark-secondary mb-4 max-w-md">Share this temporary PIN with your doctor to grant them access to your medical records. A new PIN is generated every 60 seconds.</p>
+            <div class="flex items-center gap-4">
+                <div class="bg-white dark:bg-background-dark p-4 rounded-lg shadow-inner">
+                    <p id="sharing-pin" class="text-4xl font-black tracking-widest text-primary">----</p>
+                </div>
+                <div id="pin-timer" class="flex items-center justify-center size-12 rounded-full border-2 border-primary/30 text-primary font-semibold">60s</div>
+            </div>
+        </div>
+
         <div class="bg-card-light dark:bg-card-dark rounded-xl shadow-sm border border-border-light dark:border-border-dark overflow-hidden">
             <div class="p-4 flex flex-wrap items-center justify-between gap-4">
                 <div class="relative flex-grow max-w-xs">

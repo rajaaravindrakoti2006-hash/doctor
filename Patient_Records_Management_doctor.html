@@ -133,7 +133,6 @@
 							<th class="px-6 py-3 text-left font-semibold tracking-wider text-slate-600 dark:text-slate-300" scope="col">Status</th>
 							<th class="px-6 py-3 text-left font-semibold tracking-wider text-slate-600 dark:text-slate-300" scope="col">Documents</th>
 							<th class="px-6 py-3 text-left font-semibold tracking-wider text-slate-600 dark:text-slate-300" scope="col">Date Joined</th>
-							<th class="relative px-6 py-3" scope="col"><span class="sr-only">Actions</span></th>
 						</tr>
 					</thead>
 					<tbody id="patient-table-body" class="divide-y divide-border-light dark:divide-border-dark">
@@ -151,15 +150,10 @@
 								<!-- Icon will be inserted here by JS -->
 							</td>
 							<td class="patient-joined-date whitespace-nowrap px-6 py-4 text-slate-600 dark:text-slate-300">2023-10-26</td>
-							<td class="whitespace-nowrap px-6 py-4 text-right">
-								<button class="flex h-8 w-8 items-center justify-center rounded-md hover:bg-primary/10" title="View Full Record">
-									<span class="material-symbols-outlined text-lg">visibility</span>
-								</button>
-							</td>
 						</tr>
 						<!-- Empty State Row -->
 						<tr id="no-patients-message" style="display: none;">
-							<td colspan="6" class="text-center py-10 text-slate-500 dark:text-slate-400">
+							<td colspan="5" class="text-center py-10 text-slate-500 dark:text-slate-400">
 								You do not have any patients yet.
 							</td>
 						</tr>
@@ -205,6 +199,28 @@
         </template>
     </div>
 </div>
+
+<!-- PIN Entry Modal -->
+<div id="pin-modal" class="fixed inset-0 z-[60] flex items-center justify-center bg-black bg-opacity-60 opacity-0 pointer-events-none transition-opacity duration-300">
+    <div id="pin-modal-content" class="bg-card-light dark:bg-card-dark rounded-xl shadow-2xl w-full max-w-sm m-4 transform scale-95 transition-transform duration-300">
+        <div class="p-6 text-center">
+            <h2 class="text-xl font-bold mb-2">Patient Authorization Required</h2>
+            <p class="text-sm text-slate-500 dark:text-slate-400 mb-4">Please enter the 4-digit PIN provided by the patient to access their records.</p>
+            <form id="pin-form">
+                <input id="pin-input" type="text" maxlength="4" class="w-40 h-16 text-center text-3xl font-bold tracking-[0.5em] rounded-lg border-border-light dark:border-border-dark bg-background-light dark:bg-background-dark focus:ring-2 focus:ring-primary" placeholder="----" required>
+                <p id="pin-error-message" class="text-red-500 text-sm mt-2 h-4"></p>
+                <div class="mt-4 flex gap-3 justify-center">
+                    <button type="button" id="cancel-pin-btn" class="flex-1 h-10 px-4 rounded-lg border border-border-light dark:border-border-dark text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-800">Cancel</button>
+                    <button type="submit" id="submit-pin-btn" class="flex-1 h-10 px-4 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90">Verify PIN</button>
+                </div>
+            </form>
+        </div>
+        <button id="close-pin-modal" class="absolute top-2 right-2 p-2 rounded-full hover:bg-primary/10">
+            <span class="material-symbols-outlined">close</span>
+        </button>
+    </div>
+</div>
+
 
 <!-- Firebase Scripts -->
 <script type="module" src="firebase_config.js"></script>

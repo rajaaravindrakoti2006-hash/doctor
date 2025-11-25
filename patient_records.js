@@ -24,7 +24,17 @@ const modalPatientName = document.getElementById('modal-patient-name');
 const documentListContainer = document.getElementById('document-list');
 const documentItemTemplate = document.getElementById('document-item-template');
 
+// PIN Modal Elements
+const pinModal = document.getElementById('pin-modal');
+const pinModalContent = document.getElementById('pin-modal-content');
+const pinForm = document.getElementById('pin-form');
+const pinInput = document.getElementById('pin-input');
+const pinError = document.getElementById('pin-error-message');
+const cancelPinBtn = document.getElementById('cancel-pin-btn');
+const closePinModalBtn = document.getElementById('close-pin-modal');
+
 let allPatients = []; // To store all patients for filtering
+let currentPatientForPin = null;
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
@@ -110,15 +120,9 @@ function displayPatients(patients) {
                 docIcon.className = "material-symbols-outlined text-secondary cursor-pointer";
                 docIcon.title = "Documents available";
                 docIcon.textContent = 'description';
-                docIcon.addEventListener('click', () => openDocumentModal(patientData));
+                docIcon.addEventListener('click', () => showPinModal(patientData));
                 docStatusCell.appendChild(docIcon);
             }
-
-            // Add event listener to the view button
-            const viewButton = row.querySelector('button[title="View Full Record"]');
-            viewButton.addEventListener('click', () => {
-                openDocumentModal(patientData);
-            });
 
             patientTableBody.appendChild(row);
         });
@@ -153,8 +157,68 @@ function applyFilters() {
     displayPatients(filteredPatients);
 }
 
-async function openDocumentModal(patient) {
-    modalPatientName.textContent = `${patient.fullName}'s Documents`;
+// Helper function to generate a time-based PIN from a secret (patient UID)
+async function generatePin(secret, minuteOffset = 0) { // minuteOffset is used to check previous PIN
+    const timeStep = Math.floor(Date.now() / 1000 / 60) + minuteOffset; // Apply offset to the current time step
+    const data = new TextEncoder().encode(secret + timeStep);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const view = new DataView(hashBuffer);
+    const num = view.getUint32(0, true);
+    return (num % 10000).toString().padStart(4, '0');
+}
+
+function showPinModal(patient) {
+    currentPatientForPin = { uid: patient.id, name: patient.fullName };
+    pinInput.value = '';
+    pinError.textContent = '';
+    pinModal.classList.remove('opacity-0', 'pointer-events-none');
+    pinModalContent.classList.remove('scale-95');
+    pinInput.focus();
+}
+
+function hidePinModal() {
+    pinModal.classList.add('opacity-0', 'pointer-events-none');
+    pinModalContent.classList.add('scale-95');
+    currentPatientForPin = null;
+}
+
+if (pinModal) {
+    cancelPinBtn.addEventListener('click', hidePinModal);
+    closePinModalBtn.addEventListener('click', hidePinModal);
+    pinModal.addEventListener('click', (e) => {
+        if (e.target === pinModal) hidePinModal();
+    });
+
+    pinForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        if (!currentPatientForPin) return;
+
+        const enteredPin = pinInput.value;
+        
+        // Generate PIN for the current minute and the previous minute to handle the 60-second rollover.
+        const currentPin = await generatePin(currentPatientForPin.uid);
+        const previousPin = await generatePin(currentPatientForPin.uid, -1); // -1 minute offset
+
+        if (enteredPin === currentPin || enteredPin === previousPin) {
+            const patientUidToOpen = currentPatientForPin.uid; // Store the UID before it gets cleared
+            hidePinModal();
+            
+            // Find the full patient object to pass to the document modal
+            const patientData = allPatients.find(p => p.id === patientUidToOpen);
+            if (patientData) {
+                openDocumentModal(patientData);
+            } else {
+                console.error("Could not find patient data to open document modal.");
+            }
+        } else {
+            pinError.textContent = 'Invalid PIN. Please try again.';
+            pinInput.select();
+        }
+    });
+}
+
+async function openDocumentModal(patientData) {
+    modalPatientName.textContent = `${patientData.fullName}'s Documents`;
     documentListContainer.innerHTML = '<p class="text-center text-slate-500">Loading documents...</p>';
 
     documentModal.classList.remove('opacity-0', 'pointer-events-none');
@@ -162,7 +226,7 @@ async function openDocumentModal(patient) {
 
     try {
         const recordsRef = collection(db, "medicalRecords");
-        const q = query(recordsRef, where("userId", "==", patient.id), orderBy("timestamp", "desc"));
+        const q = query(recordsRef, where("userId", "==", patientData.id), orderBy("timestamp", "desc"));
         const querySnapshot = await getDocs(q);
 
         documentListContainer.innerHTML = ''; // Clear loading message

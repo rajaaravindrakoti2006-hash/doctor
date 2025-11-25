@@ -47,6 +47,7 @@ onAuthStateChanged(auth, async (user) => {
             }
         }
 
+        setupSharingPin(user.uid);
         await loadMedicalRecords(user.uid);
     } else {
         // User is not signed in, redirect to login page or show a message
@@ -108,4 +109,40 @@ async function loadMedicalRecords(userId) {
         console.error("Error loading medical records:", error);
         documentsTableBody.innerHTML = `<tr><td colspan="5" class="text-center py-10 text-red-500">Error loading records: ${error.message}</td></tr>`;
     }
+}
+
+// Helper function to generate a time-based PIN from a secret (patient UID)
+async function generatePin(secret) {
+    const timeStep = Math.floor(Date.now() / 1000 / 60);
+    const data = new TextEncoder().encode(secret + timeStep);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const view = new DataView(hashBuffer);
+    const num = view.getUint32(0, true);
+    return (num % 10000).toString().padStart(4, '0');
+}
+
+// Function to manage the PIN display and timer
+function setupSharingPin(patientUid) {
+    const pinCard = document.getElementById('sharing-pin-card');
+    const pinElement = document.getElementById('sharing-pin');
+    const timerElement = document.getElementById('pin-timer');
+    if (!pinCard || !pinElement || !timerElement) return;
+
+    pinCard.style.display = 'flex';
+
+    const updatePin = async () => {
+        const pin = await generatePin(patientUid);
+        pinElement.textContent = pin;
+    };
+
+    const updateTimer = () => {
+        const seconds = 60 - (Math.floor(Date.now() / 1000) % 60);
+        timerElement.textContent = `${seconds}s`;
+        if (seconds === 60) {
+            updatePin();
+        }
+    };
+
+    updatePin();
+    setInterval(updateTimer, 1000);
 }
